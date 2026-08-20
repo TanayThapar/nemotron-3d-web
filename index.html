@@ -10,16 +10,16 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Syne (Display Header) + Plus Jakarta Sans + JetBrains Mono -->
+    <!-- Google Fonts: Syne (Header) + Plus Jakarta Sans + JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --nvidia-green: #76b900;
-            --nvidia-teal: #0d9488;
-            --bg-light: #f8fafc;
+            --nvidia-teal: #2dd4bf;
+            --bg-dark: #020617;
         }
 
         * {
@@ -38,8 +38,8 @@
         body {
             margin: 0;
             overflow: hidden;
-            background: radial-gradient(circle at 50% 20%, #ffffff 0%, #f1f5f9 60%, #e2e8f0 100%);
-            color: #0f172a;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
         }
 
         #canvas-container {
@@ -52,27 +52,28 @@
             pointer-events: none;
         }
 
-        /* Premium Light Glassmorphism */
+        /* 1. Dark Spatial Glass Depth & Lighting Model */
         .spatial-glass {
             background: linear-gradient(
                 135deg,
-                rgba(255, 255, 255, 0.75) 0%,
-                rgba(241, 245, 249, 0.85) 100%
+                rgba(15, 23, 42, 0.65) 0%,
+                rgba(2, 6, 23, 0.8) 100%
             );
-            backdrop-filter: blur(32px) saturate(190%);
-            -webkit-backdrop-filter: blur(32px) saturate(190%);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            border-top: 1px solid rgba(255, 255, 255, 1);
-            border-left: 1px solid rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(36px) saturate(210%);
+            -webkit-backdrop-filter: blur(36px) saturate(210%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-top: 1px solid rgba(255, 255, 255, 0.22);
+            border-left: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow: 
-                0 30px 60px -12px rgba(148, 163, 184, 0.35),
-                0 18px 36px -18px rgba(100, 116, 139, 0.25),
-                inset 0 1px 2px rgba(255, 255, 255, 0.9);
+                0 40px 80px -15px rgba(0, 0, 0, 0.8),
+                0 20px 40px -20px rgba(2, 6, 23, 0.95),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15),
+                inset 0 -1px 20px rgba(0, 0, 0, 0.6);
             position: relative;
             overflow: hidden;
         }
 
-        /* Light Shimmer Pass */
+        /* Ambient Shimmer Light-Sweep Overlay */
         .spatial-glass::before {
             content: '';
             position: absolute;
@@ -83,11 +84,11 @@
             background: linear-gradient(
                 90deg,
                 transparent 0%,
-                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0.04) 50%,
                 transparent 100%
             );
             transform: skewX(-25deg);
-            animation: lightSweep 10s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            animation: lightSweep 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
         }
 
@@ -96,77 +97,87 @@
             30%, 100% { left: 150%; }
         }
 
-        /* Focus & Interaction State Lighting Shift */
-        .scene-focused .spatial-glass {
-            border-color: rgba(118, 185, 0, 0.6);
+        /* Empty Canvas Intentional Negative Space Glow */
+        .empty-canvas-ambient {
+            background: radial-gradient(
+                circle at 50% 40%,
+                rgba(118, 185, 0, 0.04) 0%,
+                rgba(45, 212, 191, 0.02) 45%,
+                transparent 75%
+            );
+        }
+
+        /* Tactile Elevated Pills */
+        .tactile-pill {
+            border-radius: 9999px;
             box-shadow: 
-                0 30px 70px -10px rgba(118, 185, 0, 0.25),
-                0 0 35px rgba(118, 185, 0, 0.3),
-                inset 0 1px 2px rgba(255, 255, 255, 1);
+                0 10px 25px -5px rgba(0, 0, 0, 0.5),
+                0 4px 10px -3px rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tactile-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 15px 30px -5px rgba(118, 185, 0, 0.3),
+                0 6px 15px -3px rgba(0, 0, 0, 0.4),
+                inset 0 1px 1px rgba(255, 255, 255, 0.35);
         }
 
         .glass-input-wrapper {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(15, 23, 42, 0.65);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(203, 213, 225, 0.8);
-            box-shadow: inset 0 2px 4px rgba(148, 163, 184, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .glass-input-wrapper:focus-within {
             border-color: #76b900;
-            background: #ffffff;
-            box-shadow: 0 0 30px rgba(118, 185, 0, 0.3), inset 0 2px 4px rgba(148, 163, 184, 0.1);
+            background: rgba(15, 23, 42, 0.85);
+            box-shadow: 0 0 35px rgba(118, 185, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
         }
 
-        /* Interactive Light Chips */
+        /* 3D Magnetic Interactive Chips */
         .chip-interactive {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(203, 213, 225, 0.7);
-            box-shadow: 0 4px 12px rgba(148, 163, 184, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             transform-style: preserve-3d;
             will-change: transform;
-            color: #334155;
         }
 
         .chip-interactive:hover {
-            background: rgba(118, 185, 0, 0.15);
-            border-color: rgba(118, 185, 0, 0.6);
-            color: #0f172a;
-            box-shadow: 0 8px 20px -4px rgba(118, 185, 0, 0.3);
+            background: rgba(118, 185, 0, 0.18);
+            border-color: rgba(118, 185, 0, 0.5);
+            color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(118, 185, 0, 0.35);
         }
 
-        /* Light Mode Chat Bubbles */
+        /* Bubbles */
         .user-bubble {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            border: 1px solid rgba(147, 197, 253, 0.5);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
-            color: #ffffff;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(15, 23, 42, 0.45));
+            border: 1px solid rgba(96, 165, 250, 0.35);
+            box-shadow: 0 12px 32px rgba(37, 99, 235, 0.2);
         }
 
         .assistant-bubble {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.95));
+            background: linear-gradient(135deg, rgba(118, 185, 0, 0.18), rgba(15, 23, 42, 0.5));
             border: 1px solid rgba(118, 185, 0, 0.4);
-            box-shadow: 0 10px 30px rgba(148, 163, 184, 0.2);
-            color: #0f172a;
+            box-shadow: 0 12px 32px rgba(118, 185, 0, 0.18);
         }
 
         .glow-nvidia {
-            filter: drop-shadow(0 0 15px rgba(118, 185, 0, 0.5));
-        }
-
-        /* Easing & Smooth Transitions */
-        .custom-bounce {
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            filter: drop-shadow(0 0 20px rgba(118, 185, 0, 0.7));
         }
 
         pre {
-            background: #0f172a !important;
-            color: #f8fafc !important;
-            border: 1px solid rgba(203, 213, 225, 0.2);
+            background: rgba(2, 6, 23, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 0.85rem;
             padding: 1rem;
             margin: 0.75rem 0;
@@ -174,7 +185,7 @@
         }
 
         code {
-            color: #34d399;
+            color: #a7f3d0;
         }
     </style>
 </head>
@@ -186,65 +197,65 @@
     <!-- Spatial 3D OS Interface -->
     <main class="relative z-10 w-full max-w-6xl h-[92vh] spatial-glass rounded-3xl flex flex-col justify-between">
         
-        <!-- Header -->
-        <header class="px-6 md:px-8 py-4 flex items-center justify-between border-b border-slate-200/80 bg-white/40 backdrop-blur-md">
-            <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#76b900] via-emerald-400 to-teal-400 flex items-center justify-center shadow-lg shadow-[#76b900]/30 glow-nvidia">
+        <!-- Header: Restrained Nav Bar with Confident Typography -->
+        <header class="px-6 md:px-10 py-6 flex items-center justify-between border-b border-white/10 bg-slate-950/40 backdrop-blur-md">
+            <div class="flex items-center space-x-5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#76b900] via-emerald-400 to-teal-400 flex items-center justify-center shadow-lg shadow-[#76b900]/40 glow-nvidia">
                     <svg class="w-7 h-7 text-black" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="font-syne text-xl md:text-2xl font-extrabold text-slate-900 tracking-wide flex items-center gap-3">
+                    <h1 class="font-syne text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
                         NVIDIA Nemotron 3 Ultra
-                        <span class="text-xs font-sans px-3 py-1 rounded-full bg-[#76b900]/20 text-[#4d7c0f] border border-[#76b900]/40 font-bold">550B MoE</span>
+                        <span class="text-xs font-sans px-3 py-1 rounded-full bg-[#76b900]/20 text-[#76b900] border border-[#76b900]/40 font-bold tracking-normal">550B MoE</span>
                     </h1>
-                    <p class="text-xs text-slate-500 font-medium flex items-center gap-2 mt-0.5">
-                        <span id="ambient-indicator" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Spatial Light Engine • Hybrid LatentMoE
+                    <p class="text-xs text-slate-400 font-medium tracking-wide flex items-center gap-2 mt-1">
+                        <span id="ambient-indicator" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Spatial Canvas • Hybrid LatentMoE Engine
                     </p>
                 </div>
             </div>
 
             <!-- Header Controls -->
-            <div class="flex items-center space-x-3">
-                <div id="status-pill" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 text-xs font-semibold">
+            <div class="flex items-center space-x-4">
+                <div id="status-pill" class="flex items-center space-x-2 px-4 py-2 tactile-pill bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-semibold">
                     <span>Ready</span>
                 </div>
-                <button onclick="clearChat()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition border border-slate-200 text-xs font-semibold flex items-center gap-2 shadow-sm">
+                <button onclick="clearChat()" class="px-4 py-2 tactile-pill bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition border border-white/15 text-xs font-semibold flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    Clear
+                    <span>Clear</span>
                 </button>
             </div>
         </header>
 
-        <!-- Chat Container -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <!-- Chat Container with Intentional Negative Space -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 empty-canvas-ambient">
             <!-- Welcome Assistant Card -->
-            <div class="flex items-start space-x-4 assistant-bubble p-6 rounded-3xl max-w-3xl">
-                <div class="w-9 h-9 rounded-2xl bg-[#76b900] flex items-center justify-center text-black font-extrabold text-base shrink-0 glow-nvidia">
+            <div class="flex items-start space-x-4 assistant-bubble p-7 rounded-3xl max-w-3xl">
+                <div class="w-10 h-10 rounded-2xl bg-[#76b900] flex items-center justify-center text-black font-extrabold text-base shrink-0 glow-nvidia">
                     N
                 </div>
-                <div class="space-y-3 text-sm text-slate-800 leading-relaxed">
-                    <h2 class="font-syne font-bold text-[#4d7c0f] text-lg">Nemotron 3 Ultra Light OS</h2>
-                    <p>Welcome. I am NVIDIA's frontier 550B hybrid Mixture-of-Experts reasoning model. How can I assist your workflow today?</p>
+                <div class="space-y-4 text-sm text-slate-200 leading-relaxed">
+                    <h2 class="font-syne font-bold text-[#76b900] text-xl tracking-tight">Nemotron 3 Ultra Spatial Canvas</h2>
+                    <p class="text-slate-300">Welcome. I am NVIDIA's frontier 550B hybrid Mixture-of-Experts reasoning model. What complex task shall we tackle today?</p>
 
                     <!-- Starter Chips -->
-                    <div class="pt-2 flex flex-wrap gap-2">
-                        <button onclick="usePrompt('Explain quantum computing algorithms in simple terms.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs font-medium">⚛️ Quantum Computing</button>
-                        <button onclick="usePrompt('Write a Python script for real-time video streaming with OpenCV.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs font-medium">🐍 OpenCV Streaming</button>
-                        <button onclick="usePrompt('Explain Mixture-of-Experts (MoE) vs Dense Transformer architectures.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs font-medium">🧠 MoE vs Dense</button>
+                    <div class="pt-2 flex flex-wrap gap-2.5">
+                        <button onclick="usePrompt('Explain quantum computing algorithms in simple terms.')" class="chip-interactive px-4 py-2 text-xs text-slate-300 font-medium">⚛️ Quantum Computing</button>
+                        <button onclick="usePrompt('Write a Python script for real-time video streaming with OpenCV.')" class="chip-interactive px-4 py-2 text-xs text-slate-300 font-medium">🐍 OpenCV Streaming</button>
+                        <button onclick="usePrompt('Explain Mixture-of-Experts (MoE) vs Dense Transformer architectures.')" class="chip-interactive px-4 py-2 text-xs text-slate-300 font-medium">🧠 MoE vs Dense</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Floating Glass Input Bar -->
-        <div class="p-6 bg-white/40 backdrop-blur-2xl border-t border-slate-200/80">
+        <div class="p-6 md:p-8 bg-slate-950/40 backdrop-blur-2xl border-t border-white/10">
             <form id="chat-form" onsubmit="handleSend(event)" class="relative flex items-center max-w-5xl mx-auto">
-                <div class="w-full rounded-2xl glass-input-wrapper flex items-center px-4 py-2">
+                <div class="w-full rounded-full glass-input-wrapper flex items-center px-6 py-2.5 shadow-2xl">
                     <input 
                         type="text" 
                         id="user-input" 
@@ -252,12 +263,12 @@
                         autocomplete="off"
                         onfocus="onInputFocus()"
                         onblur="onInputBlur()"
-                        class="w-full h-12 bg-transparent text-slate-900 placeholder-slate-400 text-sm focus:outline-none pr-32"
+                        class="w-full h-12 bg-transparent text-white placeholder-slate-400 text-sm focus:outline-none pr-36"
                     />
                     <button 
                         type="submit" 
                         id="send-btn"
-                        class="absolute right-3 px-6 h-11 rounded-xl bg-gradient-to-r from-[#76b900] via-emerald-400 to-teal-400 hover:from-emerald-400 hover:to-[#76b900] text-slate-950 font-extrabold text-sm transition-all duration-300 shadow-xl shadow-[#76b900]/40 hover:scale-105 active:scale-95 flex items-center gap-2"
+                        class="absolute right-3 px-7 h-11 tactile-pill bg-gradient-to-r from-[#76b900] via-emerald-400 to-teal-400 hover:from-emerald-400 hover:to-[#76b900] text-slate-950 font-extrabold text-sm transition-all duration-300 flex items-center gap-2"
                     >
                         <span>Ask</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,8 +282,8 @@
 
     <!-- Custom GLSL Shader & WebGL Engine -->
     <script>
-        let scene, camera, renderer, particles, orbMesh, innerWireMesh;
-        let particlePositions, particleVelocities, originalPositions;
+        let scene, camera, renderer, orbMesh, innerWireMesh;
+        let particlePositions, particleVelocities, originalPositions, particleSizes, particleColors;
         let shaderMaterial;
         let isPaused = false;
         let isStreaming = false;
@@ -280,16 +291,14 @@
         let rippleTime = 0;
         let rippleActive = false;
 
-        const count = window.innerWidth < 768 ? 600 : 1200; // Responsive particle scaling
+        const count = window.innerWidth < 768 ? 650 : 1300;
 
-        // Target mouse and smooth current mouse for RAF throttling
         const mouseTarget = new THREE.Vector2(-1000, -1000);
         const mouseCurrent = new THREE.Vector2(-1000, -1000);
         const raycaster = new THREE.Raycaster();
         const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
         const mouseWorldPos = new THREE.Vector3();
 
-        // Custom GLSL Shaders for Glowing Glassy Core
         const vertexShader = `
             uniform float uTime;
             uniform float uDistortion;
@@ -297,7 +306,6 @@
             varying vec3 vViewPosition;
             varying vec3 vWorldPosition;
 
-            // Simplex noise helper
             vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
             vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
             float snoise(vec3 v){
@@ -363,16 +371,12 @@
             uniform float uPulse;
             varying vec3 vNormal;
             varying vec3 vViewPosition;
-            varying vec3 vWorldPosition;
 
             void main() {
                 vec3 normal = normalize(vNormal);
                 vec3 viewDir = normalize(vViewPosition);
 
-                // Fresnel Edge Reflection Glow
                 float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
-
-                // Iridescent Color Shift based on view angle
                 vec3 color = mix(uColorA, uColorB, fresnel + sin(uTime * 0.5) * 0.2);
                 color += vec3(0.4, 0.9, 0.2) * fresnel * 1.5 * uPulse;
 
@@ -392,15 +396,15 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // Shader Material Core
+            // GLSL Shader Core
             shaderMaterial = new THREE.ShaderMaterial({
                 vertexShader: vertexShader,
                 fragmentShader: fragmentShader,
                 uniforms: {
                     uTime: { value: 0 },
                     uDistortion: { value: 0.6 },
-                    uColorA: { value: new THREE.Color(0x0d9488) }, // Emerald Teal
-                    uColorB: { value: new THREE.Color(0x76b900) }, // NVIDIA Green
+                    uColorA: { value: new THREE.Color(0x0f766e) },
+                    uColorB: { value: new THREE.Color(0x76b900) },
                     uPulse: { value: 1.0 }
                 },
                 transparent: true,
@@ -412,22 +416,31 @@
             orbMesh.position.set(0, 0, -5);
             scene.add(orbMesh);
 
-            // Inner Accent Geometry
             const innerGeo = new THREE.IcosahedronGeometry(4, 2);
-            const innerMat = new THREE.MeshBasicMaterial({ color: 0x76b900, wireframe: true, transparent: true, opacity: 0.5 });
+            const innerMat = new THREE.MeshBasicMaterial({ color: 0x76b900, wireframe: true, transparent: true, opacity: 0.4 });
             innerWireMesh = new THREE.Mesh(innerGeo, innerMat);
             orbMesh.add(innerWireMesh);
 
-            // Ambient + Interactive Particle Field
+            // Vignette Gaussian Particle System with Multi-Tier Sizes & Accent Tones
             const particleGeo = new THREE.BufferGeometry();
             particlePositions = new Float32Array(count * 3);
             originalPositions = new Float32Array(count * 3);
             particleVelocities = new Float32Array(count * 3);
+            particleColors = new Float32Array(count * 3);
+
+            const colorPrimary = new THREE.Color(0x76b900); // NVIDIA Green
+            const colorSecondary = new THREE.Color(0x2dd4bf); // Teal Accent
 
             for(let i = 0; i < count * 3; i += 3) {
-                const x = (Math.random() - 0.5) * 130;
-                const y = (Math.random() - 0.5) * 130;
-                const z = (Math.random() - 0.5) * 60;
+                // Gaussian focal distribution: higher density near center (0,0), sparser at edges
+                const u = Math.random();
+                const v = Math.random();
+                const radius = Math.sqrt(-2 * Math.log(u)) * 32;
+                const theta = 2 * Math.PI * v;
+
+                const x = radius * Math.cos(theta);
+                const y = radius * Math.sin(theta);
+                const z = (Math.random() - 0.5) * 50;
 
                 particlePositions[i] = x;
                 particlePositions[i+1] = y;
@@ -440,26 +453,31 @@
                 particleVelocities[i] = 0;
                 particleVelocities[i+1] = 0;
                 particleVelocities[i+2] = 0;
+
+                // 85% primary green, 15% secondary teal accent
+                const chosenColor = Math.random() < 0.85 ? colorPrimary : colorSecondary;
+                particleColors[i] = chosenColor.r;
+                particleColors[i+1] = chosenColor.g;
+                particleColors[i+2] = chosenColor.b;
             }
 
             particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
             
             const particleMat = new THREE.PointsMaterial({
                 size: 0.45,
-                color: 0x059669,
+                vertexColors: true,
                 transparent: true,
-                opacity: 0.65,
-                blending: THREE.NormalBlending
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
             });
             particles = new THREE.Points(particleGeo, particleMat);
             scene.add(particles);
 
-            // RAF Throttled Mousemove Listener
             window.addEventListener('mousemove', (e) => {
                 mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1;
                 mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
-                // 3D Tilt for Interactive Starter Chips
                 const chips = document.querySelectorAll('.chip-interactive');
                 chips.forEach(chip => {
                     const rect = chip.getBoundingClientRect();
@@ -468,14 +486,13 @@
                     const dx = (e.clientX - cx) / (rect.width / 2);
                     const dy = (e.clientY - cy) / (rect.height / 2);
                     if (Math.abs(dx) < 2 && Math.abs(dy) < 2) {
-                        chip.style.transform = `perspective(500px) rotateX(${-dy * 12}deg) rotateY(${dx * 12}deg) translateZ(6px)`;
+                        chip.style.transform = `perspective(500px) rotateX(${-dy * 10}deg) rotateY(${dx * 10}deg) translateZ(4px)`;
                     } else {
                         chip.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
                     }
                 });
             });
 
-            // Page Visibility API Optimization
             document.addEventListener('visibilitychange', () => {
                 isPaused = document.hidden;
             });
@@ -491,33 +508,24 @@
                 lastTime = timestamp;
                 const time = timestamp * 0.001;
 
-                // Smooth mouse interpolation (LERP)
                 mouseCurrent.lerp(mouseTarget, 0.08);
 
-                // 1. Core Idle Animation (Orbital Drift + Rotation + Breathing Pulse)
                 if (orbMesh) {
                     shaderMaterial.uniforms.uTime.value = time;
-                    
-                    // Idle rotation + cursor proximity bias
                     orbMesh.rotation.y = time * 0.15 + mouseCurrent.x * 0.35;
                     orbMesh.rotation.x = time * 0.1 + (-mouseCurrent.y) * 0.35;
-                    
-                    // Orbital drift
                     orbMesh.position.y = Math.sin(time * 0.8) * 0.8;
                     orbMesh.position.x = Math.cos(time * 0.5) * 0.5;
 
-                    // Response streaming / Focus pulse shift
                     const targetPulse = isStreaming ? 2.2 + Math.sin(time * 8.0) * 0.5 : (isFocused ? 1.6 : 1.0);
                     shaderMaterial.uniforms.uPulse.value += (targetPulse - shaderMaterial.uniforms.uPulse.value) * 0.05;
 
                     innerWireMesh.rotation.z = -time * 0.3;
                 }
 
-                // 2. Mouse Position Raycasting in 3D Space
                 raycaster.setFromCamera(mouseCurrent, camera);
                 raycaster.ray.intersectPlane(plane, mouseWorldPos);
 
-                // 3. Particle Physics (Ambient Drift + Repulsion + Delight Ripple)
                 const positions = particles.geometry.attributes.position.array;
 
                 if (rippleActive) {
@@ -537,11 +545,9 @@
                     const oy = originalPositions[i+1];
                     const oz = originalPositions[i+2];
 
-                    // Baseline Ambient Drift
                     const ambientNoise = Math.sin(time * 1.5 + ox) * 0.03;
                     positions[i+1] += ambientNoise;
 
-                    // Cursor Repulsion / Focus Attraction
                     const dx = px - mouseWorldPos.x;
                     const dy = py - mouseWorldPos.y;
                     const distSq = dx * dx + dy * dy;
@@ -550,13 +556,12 @@
                     if (distSq < radius * radius && distSq > 0) {
                         const dist = Math.sqrt(distSq);
                         const force = (radius - dist) / radius;
-                        const factor = isFocused ? -0.8 : 1.4; // Attract on focus, repel on normal hover
+                        const factor = isFocused ? -0.8 : 1.4;
                         
                         particleVelocities[i] += (dx / dist) * force * factor;
                         particleVelocities[i+1] += (dy / dist) * force * factor;
                     }
 
-                    // Delight Wave Ripple from 3D Core
                     if (rippleActive) {
                         const distFromCenter = Math.sqrt(px * px + py * py);
                         if (Math.abs(distFromCenter - rippleTime) < 4) {
@@ -564,17 +569,14 @@
                         }
                     }
 
-                    // Elastic return to baseline
                     particleVelocities[i] += (ox - px) * 0.03;
                     particleVelocities[i+1] += (oy - py) * 0.03;
                     particleVelocities[i+2] += (oz - pz) * 0.03;
 
-                    // Damping
                     particleVelocities[i] *= 0.86;
                     particleVelocities[i+1] *= 0.86;
                     particleVelocities[i+2] *= 0.86;
 
-                    // Apply velocities
                     positions[i] += particleVelocities[i];
                     positions[i+1] += particleVelocities[i+1];
                     positions[i+2] += particleVelocities[i+2];
@@ -633,16 +635,14 @@
             appendUserMessage(text);
             messageHistory.push({ role: "user", content: text });
 
-            // Trigger 3D Core Shockwave Delight Wave
             triggerDelightRipple();
 
-            // Create Nemotron Loading Card
             const assistantCard = createAssistantCardPlaceholder();
             chatMessages.appendChild(assistantCard);
             scrollToBottom();
 
             isStreaming = true;
-            setStatus("Reasoning...", "bg-amber-500/10 border-amber-500/30 text-amber-700");
+            setStatus("Reasoning...", "bg-amber-500/15 border-amber-500/40 text-amber-400");
 
             try {
                 const response = await fetch('/api/chat', {
@@ -670,12 +670,12 @@
             }
 
             isStreaming = false;
-            setStatus("Ready", "bg-emerald-500/10 border-emerald-500/30 text-emerald-700");
+            setStatus("Ready", "bg-emerald-500/15 border-emerald-500/40 text-emerald-400");
         }
 
         function appendUserMessage(text) {
             const div = document.createElement('div');
-            div.className = 'flex items-start justify-end space-x-3 ml-auto max-w-2xl custom-bounce';
+            div.className = 'flex items-start justify-end space-x-3 ml-auto max-w-2xl';
             div.innerHTML = `
                 <div class="user-bubble p-5 rounded-3xl text-sm text-white leading-relaxed">
                     ${escapeHtml(text)}
@@ -687,7 +687,7 @@
 
         function createAssistantCardPlaceholder() {
             const div = document.createElement('div');
-            div.className = 'flex items-start space-x-4 assistant-bubble p-6 rounded-3xl max-w-3xl animate-pulse custom-bounce';
+            div.className = 'flex items-start space-x-4 assistant-bubble p-6 rounded-3xl max-w-3xl animate-pulse';
             div.innerHTML = `
                 <div class="w-9 h-9 rounded-2xl bg-[#76b900] flex items-center justify-center text-black font-extrabold text-base shrink-0 glow-nvidia">
                     N
@@ -707,7 +707,7 @@
         }
 
         function setStatus(text, classes) {
-            statusPill.className = `flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-semibold ${classes}`;
+            statusPill.className = `flex items-center space-x-2 px-4 py-2 tactile-pill text-xs font-semibold ${classes}`;
             statusPill.querySelector('span:last-child').textContent = text;
         }
 
