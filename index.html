@@ -1,728 +1,889 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVIDIA Nemotron 3 Ultra — Spatial OS</title>
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Marked.js -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Syne (Header) + Plus Jakarta Sans + JetBrains Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --nvidia-green: #76b900;
-            --nvidia-teal: #2dd4bf;
-            --bg-dark: #020617;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nemotron 3 Ultra — Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────────────────────── */
+    :root {
+      --primary:       #2563EB;
+      --primary-dark:  #1D4ED8;
+      --secondary:     #64748B;
+      --accent:        #10B981;
+      --danger:        #EF4444;
 
-        * {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            box-sizing: border-box;
-        }
+      --bg:            #F8FAFC;
+      --surface:       #FFFFFF;
+      --surface-2:     #F1F5F9;
+      --border:        #E2E8F0;
+      --border-strong: #CBD5E1;
 
-        .font-syne {
-            font-family: 'Syne', sans-serif;
-        }
+      --text-primary:  #0F172A;
+      --text-secondary:#475569;
+      --text-muted:    #94A3B8;
 
-        code, pre {
-            font-family: 'JetBrains Mono', monospace;
-        }
+      --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md:  0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.05);
+      --shadow-lg:  0 12px 32px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
 
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: var(--bg-dark);
-            color: #f8fafc;
-        }
+      --radius-sm:  6px;
+      --radius-md:  10px;
+      --radius-lg:  14px;
+      --radius-xl:  20px;
+      --radius-pill:9999px;
 
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
-        }
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
-        /* 1. Dark Spatial Glass Depth & Lighting Model */
-        .spatial-glass {
-            background: linear-gradient(
-                135deg,
-                rgba(15, 23, 42, 0.65) 0%,
-                rgba(2, 6, 23, 0.8) 100%
-            );
-            backdrop-filter: blur(36px) saturate(210%);
-            -webkit-backdrop-filter: blur(36px) saturate(210%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-top: 1px solid rgba(255, 255, 255, 0.22);
-            border-left: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 
-                0 40px 80px -15px rgba(0, 0, 0, 0.8),
-                0 20px 40px -20px rgba(2, 6, 23, 0.95),
-                inset 0 1px 1px rgba(255, 255, 255, 0.15),
-                inset 0 -1px 20px rgba(0, 0, 0, 0.6);
-            position: relative;
-            overflow: hidden;
-        }
+      --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-        /* Ambient Shimmer Light-Sweep Overlay */
-        .spatial-glass::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -150%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.04) 50%,
-                transparent 100%
-            );
-            transform: skewX(-25deg);
-            animation: lightSweep 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
-        }
+      --header-h: 56px;
+      --input-area-h: 100px;
+      --max-w: 860px;
+    }
 
-        @keyframes lightSweep {
-            0% { left: -150%; }
-            30%, 100% { left: 150%; }
-        }
+    /* ─── Dark Mode Tokens ──────────────────────────────────────────────── */
+    [data-theme="dark"] {
+      --bg:            #0B1120;
+      --surface:       #111827;
+      --surface-2:     #1E293B;
+      --border:        #1E293B;
+      --border-strong: #334155;
 
-        /* Empty Canvas Intentional Negative Space Glow */
-        .empty-canvas-ambient {
-            background: radial-gradient(
-                circle at 50% 40%,
-                rgba(118, 185, 0, 0.04) 0%,
-                rgba(45, 212, 191, 0.02) 45%,
-                transparent 75%
-            );
-        }
+      --text-primary:  #F1F5F9;
+      --text-secondary:#94A3B8;
+      --text-muted:    #475569;
 
-        /* Tactile Elevated Pills */
-        .tactile-pill {
-            border-radius: 9999px;
-            box-shadow: 
-                0 10px 25px -5px rgba(0, 0, 0, 0.5),
-                0 4px 10px -3px rgba(0, 0, 0, 0.3),
-                inset 0 1px 1px rgba(255, 255, 255, 0.25);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+      --shadow-sm:  0 1px 3px rgba(0,0,0,.3);
+      --shadow-md:  0 4px 12px rgba(0,0,0,.4);
+      --shadow-lg:  0 12px 32px rgba(0,0,0,.5);
+    }
 
-        .tactile-pill:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 15px 30px -5px rgba(118, 185, 0, 0.3),
-                0 6px 15px -3px rgba(0, 0, 0, 0.4),
-                inset 0 1px 1px rgba(255, 255, 255, 0.35);
-        }
+    /* ─── Reset & Base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .glass-input-wrapper {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg);
+      transition: background var(--transition), color var(--transition);
+      overflow: hidden;
+    }
 
-        .glass-input-wrapper:focus-within {
-            border-color: #76b900;
-            background: rgba(15, 23, 42, 0.85);
-            box-shadow: 0 0 35px rgba(118, 185, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
+    /* ─── Three.js Canvas ───────────────────────────────────────────────── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .18;
+      transition: opacity var(--transition);
+    }
+    [data-theme="dark"] #bg-canvas { opacity: .28; }
+    @media (prefers-reduced-motion: reduce) { #bg-canvas { display: none; } }
 
-        /* 3D Magnetic Interactive Chips */
-        .chip-interactive {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 9999px;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            transform-style: preserve-3d;
-            will-change: transform;
-        }
+    /* ─── Layout Shell ──────────────────────────────────────────────────── */
+    #app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
 
-        .chip-interactive:hover {
-            background: rgba(118, 185, 0, 0.18);
-            border-color: rgba(118, 185, 0, 0.5);
-            color: #ffffff;
-            box-shadow: 0 10px 25px -5px rgba(118, 185, 0, 0.35);
-        }
+    /* ─── Top Bar ────────────────────────────────────────────────────────── */
+    #topbar {
+      flex-shrink: 0;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
 
-        /* Bubbles */
-        .user-bubble {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(15, 23, 42, 0.45));
-            border: 1px solid rgba(96, 165, 250, 0.35);
-            box-shadow: 0 12px 32px rgba(37, 99, 235, 0.2);
-        }
+    #logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    #logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #76b900, #10B981);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+    #logo-icon svg { width: 18px; height: 18px; }
+    #logo-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+    @media (max-width: 480px) { #logo-text { display: none; } }
 
-        .assistant-bubble {
-            background: linear-gradient(135deg, rgba(118, 185, 0, 0.18), rgba(15, 23, 42, 0.5));
-            border: 1px solid rgba(118, 185, 0, 0.4);
-            box-shadow: 0 12px 32px rgba(118, 185, 0, 0.18);
-        }
+    #topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .glow-nvidia {
-            filter: drop-shadow(0 0 20px rgba(118, 185, 0, 0.7));
-        }
+    /* ─── Pill Buttons (Header) ─────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font);
+      font-size: 13px; font-weight: 500;
+      line-height: 1;
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-strong);
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text-secondary);
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition), color var(--transition), transform var(--transition-bounce), box-shadow var(--transition);
+    }
+    .btn:hover {
+      background: var(--surface-2);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+    .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-        pre {
-            background: rgba(2, 6, 23, 0.9) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 0.85rem;
-            padding: 1rem;
-            margin: 0.75rem 0;
-            overflow-x: auto;
-        }
+    /* Theme toggle */
+    #theme-toggle svg { width: 16px; height: 16px; }
 
-        code {
-            color: #a7f3d0;
-        }
-    </style>
+    /* Status badge */
+    #status-badge {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      background: #D1FAE5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+      transition: all var(--transition);
+    }
+    [data-theme="dark"] #status-badge { background: rgba(16,185,129,.15); color: #34D399; border-color: rgba(16,185,129,.3); }
+    #status-badge.loading { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
+    [data-theme="dark"] #status-badge.loading { background: rgba(245,158,11,.15); color: #FCD34D; border-color: rgba(245,158,11,.3); }
+
+    /* ─── Chat Area ──────────────────────────────────────────────────────── */
+    #chat-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 24px 0;
+    }
+    #chat-scroll::-webkit-scrollbar { width: 5px; }
+    #chat-scroll::-webkit-scrollbar-track { background: transparent; }
+    #chat-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+    #messages {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+
+    /* ─── Welcome Card ─────────────────────────────────────────────────── */
+    #welcome-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px 32px;
+      box-shadow: var(--shadow-md);
+    }
+    #welcome-card h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    #welcome-card p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    /* ─── Prompt Chips ─────────────────────────────────────────────────── */
+    #chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-strong);
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+      transition: background var(--transition), color var(--transition), transform var(--transition-bounce), box-shadow var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    .chip:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37,99,235,.25);
+    }
+    .chip:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* ─── Chat Bubbles ─────────────────────────────────────────────────── */
+    .msg-row {
+      display: flex;
+      gap: 12px;
+      animation: msgIn 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .msg-row { animation: none; }
+    }
+
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      margin-top: 2px;
+    }
+    .msg-avatar.n-avatar {
+      background: linear-gradient(135deg, #76b900, #10B981);
+      color: #fff;
+    }
+    .msg-avatar.u-avatar {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .msg-bubble {
+      max-width: min(75%, 640px);
+      padding: 12px 16px;
+      border-radius: var(--radius-lg);
+      font-size: 15px;
+      line-height: 1.65;
+      box-shadow: var(--shadow-sm);
+    }
+    .msg-row.assistant .msg-bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-bottom-left-radius: var(--radius-sm);
+    }
+    .msg-row.user .msg-bubble {
+      background: var(--primary);
+      color: #fff;
+      border-bottom-right-radius: var(--radius-sm);
+    }
+
+    /* Markdown in bubbles */
+    .msg-bubble p { margin-bottom: 10px; }
+    .msg-bubble p:last-child { margin-bottom: 0; }
+    .msg-bubble pre {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    [data-theme="dark"] .msg-bubble pre { background: #0B1120; }
+    .msg-bubble code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: rgba(99,102,241,.1);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .msg-bubble pre code { background: transparent; padding: 0; }
+    .msg-bubble ul, .msg-bubble ol { padding-left: 20px; margin-bottom: 10px; }
+    .msg-row.user .msg-bubble pre,
+    .msg-row.user .msg-bubble code { background: rgba(255,255,255,.15); color: #fff; }
+
+    /* ─── Skeleton / Loading ───────────────────────────────────────────── */
+    .skeleton-bubble {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      border-bottom-left-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      max-width: 300px;
+    }
+    .skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface-2) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    @media (prefers-reduced-motion: reduce) { .skeleton-line { animation: none; } }
+    @keyframes shimmer {
+      from { background-position: 200% 0; }
+      to   { background-position: -200% 0; }
+    }
+    .skeleton-line:nth-child(1) { width: 80%; }
+    .skeleton-line:nth-child(2) { width: 60%; }
+    .skeleton-line:nth-child(3) { width: 70%; }
+
+    /* ─── Input Area ─────────────────────────────────────────────────── */
+    #input-area {
+      flex-shrink: 0;
+      padding: 12px 0 16px;
+      border-top: 1px solid var(--border);
+    }
+    #input-form {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    #input-wrap {
+      flex: 1;
+      position: relative;
+      background: var(--surface);
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    #input-wrap:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    }
+    #user-input {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      max-height: 120px;
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      resize: none;
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--text-primary);
+      outline: none;
+      border-radius: var(--radius-xl);
+      overflow-y: auto;
+      line-height: 1.55;
+    }
+    #user-input::placeholder { color: var(--text-muted); }
+
+    #send-btn {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-md);
+      transition: background var(--transition), transform var(--transition-bounce), box-shadow var(--transition), opacity var(--transition);
+    }
+    #send-btn svg { width: 18px; height: 18px; }
+    #send-btn:hover:not(:disabled) {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37,99,235,.35);
+    }
+    #send-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: var(--shadow-sm); }
+    #send-btn:active:not(:disabled) { transform: scale(.95); }
+
+    /* ─── Toast ─────────────────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      font-size: 14px;
+      color: var(--text-primary);
+      pointer-events: all;
+      animation: toastIn 220ms cubic-bezier(0.4,0,0.2,1) both;
+      max-width: 380px;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .toast.error { border-color: #FECACA; background: #FFF5F5; color: #991B1B; }
+    [data-theme="dark"] .toast.error { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.3); color: #FCA5A5; }
+    .toast-icon { font-size: 16px; flex-shrink: 0; }
+    .toast-msg { flex: 1; }
+    .toast-close {
+      border: none; background: none; cursor: pointer;
+      color: inherit; opacity: .6; font-size: 16px; line-height: 1;
+      padding: 2px 4px; border-radius: 4px;
+    }
+    .toast-close:hover { opacity: 1; }
+
+    /* ─── Gradient BG fallback (reduced-motion) ─────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      body {
+        background: var(--bg);
+      }
+    }
+
+    /* ─── Responsive ────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      #chips { flex-direction: column; }
+      .chip { width: 100%; justify-content: center; }
+      .msg-bubble { font-size: 14px; }
+      #welcome-card { padding: 20px; }
+    }
+  </style>
 </head>
-<body id="app-body" class="h-screen w-screen flex items-center justify-center relative select-none p-4 md:p-8">
+<body>
 
-    <!-- WebGL 3D Background -->
-    <div id="canvas-container"></div>
+<!-- Three.js WebGL background -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
 
-    <!-- Spatial 3D OS Interface -->
-    <main class="relative z-10 w-full max-w-6xl h-[92vh] spatial-glass rounded-3xl flex flex-col justify-between">
-        
-        <!-- Header: Restrained Nav Bar with Confident Typography -->
-        <header class="px-6 md:px-10 py-6 flex items-center justify-between border-b border-white/10 bg-slate-950/40 backdrop-blur-md">
-            <div class="flex items-center space-x-5">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#76b900] via-emerald-400 to-teal-400 flex items-center justify-center shadow-lg shadow-[#76b900]/40 glow-nvidia">
-                    <svg class="w-7 h-7 text-black" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="font-syne text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                        NVIDIA Nemotron 3 Ultra
-                        <span class="text-xs font-sans px-3 py-1 rounded-full bg-[#76b900]/20 text-[#76b900] border border-[#76b900]/40 font-bold tracking-normal">550B MoE</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 font-medium tracking-wide flex items-center gap-2 mt-1">
-                        <span id="ambient-indicator" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Spatial Canvas • Hybrid LatentMoE Engine
-                    </p>
-                </div>
-            </div>
+<!-- Toast container -->
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
 
-            <!-- Header Controls -->
-            <div class="flex items-center space-x-4">
-                <div id="status-pill" class="flex items-center space-x-2 px-4 py-2 tactile-pill bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-semibold">
-                    <span>Ready</span>
-                </div>
-                <button onclick="clearChat()" class="px-4 py-2 tactile-pill bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition border border-white/15 text-xs font-semibold flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    <span>Clear</span>
-                </button>
-            </div>
-        </header>
+<div id="app">
 
-        <!-- Chat Container with Intentional Negative Space -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 empty-canvas-ambient">
-            <!-- Welcome Assistant Card -->
-            <div class="flex items-start space-x-4 assistant-bubble p-7 rounded-3xl max-w-3xl">
-                <div class="w-10 h-10 rounded-2xl bg-[#76b900] flex items-center justify-center text-black font-extrabold text-base shrink-0 glow-nvidia">
-                    N
-                </div>
-                <div class="space-y-4 text-sm text-slate-200 leading-relaxed">
-                    <h2 class="font-syne font-bold text-[#76b900] text-xl tracking-tight">Nemotron 3 Ultra Spatial Canvas</h2>
-                    <p class="text-slate-300">Welcome. I am NVIDIA's frontier 550B hybrid Mixture-of-Experts reasoning model. What complex task shall we tackle today?</p>
+  <!-- Top Bar -->
+  <header id="topbar" role="banner">
+    <a id="logo" href="#" aria-label="Nemotron 3 Ultra Home">
+      <div id="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span id="logo-text">Nemotron&nbsp;3&nbsp;Ultra</span>
+    </a>
 
-                    <!-- Starter Chips -->
-                    <div class="pt-2 flex flex-wrap gap-2.5">
-                        <button onclick="usePrompt('Explain quantum computing algorithms in simple terms.')" class="chip-interactive px-4 py-2 text-xs text-slate-300 font-medium">⚛️ Quantum Computing</button>
-                        <button onclick="usePrompt('Write a Python script for real-time video streaming with OpenCV.')" class="chip-interactive px-4 py-2 text-xs text-slate-300 font-medium">🐍 OpenCV Streaming</button>
-                        <button onclick="usePrompt('Explain Mixture-of-Experts (MoE) vs Dense Transformer architectures.')" class="chip-interactive px-4 py-2 text-xs text-slate-300 font-medium">🧠 MoE vs Dense</button>
-                    </div>
-                </div>
-            </div>
+    <div id="topbar-right">
+      <span id="status-badge" role="status" aria-live="polite">Ready</span>
+
+      <button class="btn" id="clear-btn" aria-label="Clear chat history" onclick="clearChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+        </svg>
+        <span class="hide-xs">Clear</span>
+      </button>
+
+      <button class="btn" id="theme-toggle" aria-label="Toggle light/dark mode" onclick="toggleTheme()">
+        <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Chat Scroll Area -->
+  <section id="chat-scroll" aria-label="Conversation" role="log" aria-live="polite">
+    <div id="messages">
+
+      <!-- Welcome Card -->
+      <div id="welcome-card" role="region" aria-label="Welcome">
+        <h2>What can I help you with?</h2>
+        <p>Powered by NVIDIA Nemotron 3 Ultra — a 550B hybrid Mixture-of-Experts reasoning model.</p>
+        <div id="chips" role="list" aria-label="Prompt suggestions">
+          <button class="chip" role="listitem" aria-label="Ask about quantum computing" onclick="usePrompt('Explain quantum computing algorithms in simple terms.')">⚛️ Quantum computing</button>
+          <button class="chip" role="listitem" aria-label="Ask about OpenCV video streaming" onclick="usePrompt('Write a Python script for real-time video streaming with OpenCV.')">🐍 OpenCV streaming</button>
+          <button class="chip" role="listitem" aria-label="Ask about MoE vs Dense transformers" onclick="usePrompt('Explain Mixture-of-Experts (MoE) vs Dense Transformer architectures.')">🧠 MoE vs Dense</button>
+          <button class="chip" role="listitem" aria-label="Ask about system design" onclick="usePrompt('Design a scalable microservices architecture for a high-traffic e-commerce platform.')">🏗️ System design</button>
+          <button class="chip" role="listitem" aria-label="Ask for a code review" onclick="usePrompt('What are modern best practices for writing clean, maintainable Python code?')">✅ Clean code tips</button>
         </div>
-
-        <!-- Floating Glass Input Bar -->
-        <div class="p-6 md:p-8 bg-slate-950/40 backdrop-blur-2xl border-t border-white/10">
-            <form id="chat-form" onsubmit="handleSend(event)" class="relative flex items-center max-w-5xl mx-auto">
-                <div class="w-full rounded-full glass-input-wrapper flex items-center px-6 py-2.5 shadow-2xl">
-                    <input 
-                        type="text" 
-                        id="user-input" 
-                        placeholder="Ask Nemotron 3 Ultra anything..." 
-                        autocomplete="off"
-                        onfocus="onInputFocus()"
-                        onblur="onInputBlur()"
-                        class="w-full h-12 bg-transparent text-white placeholder-slate-400 text-sm focus:outline-none pr-36"
-                    />
-                    <button 
-                        type="submit" 
-                        id="send-btn"
-                        class="absolute right-3 px-7 h-11 tactile-pill bg-gradient-to-r from-[#76b900] via-emerald-400 to-teal-400 hover:from-emerald-400 hover:to-[#76b900] text-slate-950 font-extrabold text-sm transition-all duration-300 flex items-center gap-2"
-                    >
-                        <span>Ask</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                        </svg>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </main>
-
-    <!-- Custom GLSL Shader & WebGL Engine -->
-    <script>
-        let scene, camera, renderer, orbMesh, innerWireMesh;
-        let particlePositions, particleVelocities, originalPositions, particleSizes, particleColors;
-        let shaderMaterial;
-        let isPaused = false;
-        let isStreaming = false;
-        let isFocused = false;
-        let rippleTime = 0;
-        let rippleActive = false;
-
-        const count = window.innerWidth < 768 ? 650 : 1300;
-
-        const mouseTarget = new THREE.Vector2(-1000, -1000);
-        const mouseCurrent = new THREE.Vector2(-1000, -1000);
-        const raycaster = new THREE.Raycaster();
-        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-        const mouseWorldPos = new THREE.Vector3();
-
-        const vertexShader = `
-            uniform float uTime;
-            uniform float uDistortion;
-            varying vec3 vNormal;
-            varying vec3 vViewPosition;
-            varying vec3 vWorldPosition;
-
-            vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-            vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
-            float snoise(vec3 v){
-                const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-                const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-                vec3 i  = floor(v + dot(v, C.yyy) );
-                vec3 x0 = v - i + dot(i, C.xxx) ;
-                vec3 g = step(x0.yzx, x0.xyz);
-                vec3 l = 1.0 - g;
-                vec3 i1 = min( g.xyz, l.zxy );
-                vec3 i2 = max( g.xyz, l.zxy );
-                vec3 x1 = x0 - i1 + 1.0 * C.xxx;
-                vec3 x2 = x0 - i2 + 2.0 * C.xxx;
-                vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
-                i = mod(i, 289.0 );
-                vec4 p = permute( permute( permute(
-                            i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-                        + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
-                        + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
-                float n_ = 0.142857142857;
-                vec3  ns = n_ * D.wyz - D.xzx;
-                vec4 j = p - 49.0 * floor(p * ns.z);
-                vec4 x_ = floor(j * ns.z);
-                vec4 y_ = floor(j - 7.0 * x_ );
-                vec4 x = x_ *ns.x + ns.yyyy;
-                vec4 y = y_ *ns.x + ns.yyyy;
-                vec4 h = 1.0 - abs(x) - abs(y);
-                vec4 b0 = vec4( x.xy, y.xy );
-                vec4 b1 = vec4( x.zw, y.zw );
-                vec4 s0 = floor(b0)*2.0 + 1.0;
-                vec4 s1 = floor(b1)*2.0 + 1.0;
-                vec4 sh = -step(h, vec4(0.0));
-                vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
-                vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
-                vec3 p0 = vec3(a0.xy,h.x);
-                vec3 p1 = vec3(a0.zw,h.y);
-                vec3 p2 = vec3(a1.xy,h.z);
-                vec3 p3 = vec3(a1.zw,h.w);
-                vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-                p0 *= norm.x;
-                p1 *= norm.y;
-                p2 *= norm.z;
-                p3 *= norm.w;
-                vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-                m = m * m;
-                return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
-            }
-
-            void main() {
-                vNormal = normalize(normalMatrix * normal);
-                vec3 displacedPosition = position + normal * snoise(position * 0.2 + uTime * 0.5) * uDistortion;
-                vec4 mvPosition = modelViewMatrix * vec4(displacedPosition, 1.0);
-                vViewPosition = -mvPosition.xyz;
-                vWorldPosition = (modelMatrix * vec4(displacedPosition, 1.0)).xyz;
-                gl_Position = projectionMatrix * mvPosition;
-            }
-        `;
-
-        const fragmentShader = `
-            uniform float uTime;
-            uniform vec3 uColorA;
-            uniform vec3 uColorB;
-            uniform float uPulse;
-            varying vec3 vNormal;
-            varying vec3 vViewPosition;
-
-            void main() {
-                vec3 normal = normalize(vNormal);
-                vec3 viewDir = normalize(vViewPosition);
-
-                float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
-                vec3 color = mix(uColorA, uColorB, fresnel + sin(uTime * 0.5) * 0.2);
-                color += vec3(0.4, 0.9, 0.2) * fresnel * 1.5 * uPulse;
-
-                gl_FragColor = vec4(color, 0.45 + fresnel * 0.5);
-            }
-        `;
-
-        function init3D() {
-            const container = document.getElementById('canvas-container');
-            
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 28;
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
-
-            // GLSL Shader Core
-            shaderMaterial = new THREE.ShaderMaterial({
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
-                uniforms: {
-                    uTime: { value: 0 },
-                    uDistortion: { value: 0.6 },
-                    uColorA: { value: new THREE.Color(0x0f766e) },
-                    uColorB: { value: new THREE.Color(0x76b900) },
-                    uPulse: { value: 1.0 }
-                },
-                transparent: true,
-                wireframe: true
-            });
-
-            const coreGeo = new THREE.IcosahedronGeometry(8, 4);
-            orbMesh = new THREE.Mesh(coreGeo, shaderMaterial);
-            orbMesh.position.set(0, 0, -5);
-            scene.add(orbMesh);
-
-            const innerGeo = new THREE.IcosahedronGeometry(4, 2);
-            const innerMat = new THREE.MeshBasicMaterial({ color: 0x76b900, wireframe: true, transparent: true, opacity: 0.4 });
-            innerWireMesh = new THREE.Mesh(innerGeo, innerMat);
-            orbMesh.add(innerWireMesh);
-
-            // Vignette Gaussian Particle System with Multi-Tier Sizes & Accent Tones
-            const particleGeo = new THREE.BufferGeometry();
-            particlePositions = new Float32Array(count * 3);
-            originalPositions = new Float32Array(count * 3);
-            particleVelocities = new Float32Array(count * 3);
-            particleColors = new Float32Array(count * 3);
-
-            const colorPrimary = new THREE.Color(0x76b900); // NVIDIA Green
-            const colorSecondary = new THREE.Color(0x2dd4bf); // Teal Accent
-
-            for(let i = 0; i < count * 3; i += 3) {
-                // Gaussian focal distribution: higher density near center (0,0), sparser at edges
-                const u = Math.random();
-                const v = Math.random();
-                const radius = Math.sqrt(-2 * Math.log(u)) * 32;
-                const theta = 2 * Math.PI * v;
-
-                const x = radius * Math.cos(theta);
-                const y = radius * Math.sin(theta);
-                const z = (Math.random() - 0.5) * 50;
-
-                particlePositions[i] = x;
-                particlePositions[i+1] = y;
-                particlePositions[i+2] = z;
-
-                originalPositions[i] = x;
-                originalPositions[i+1] = y;
-                originalPositions[i+2] = z;
-
-                particleVelocities[i] = 0;
-                particleVelocities[i+1] = 0;
-                particleVelocities[i+2] = 0;
-
-                // 85% primary green, 15% secondary teal accent
-                const chosenColor = Math.random() < 0.85 ? colorPrimary : colorSecondary;
-                particleColors[i] = chosenColor.r;
-                particleColors[i+1] = chosenColor.g;
-                particleColors[i+2] = chosenColor.b;
-            }
-
-            particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-            particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
-            
-            const particleMat = new THREE.PointsMaterial({
-                size: 0.45,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.8,
-                blending: THREE.AdditiveBlending
-            });
-            particles = new THREE.Points(particleGeo, particleMat);
-            scene.add(particles);
-
-            window.addEventListener('mousemove', (e) => {
-                mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1;
-                mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-                const chips = document.querySelectorAll('.chip-interactive');
-                chips.forEach(chip => {
-                    const rect = chip.getBoundingClientRect();
-                    const cx = rect.left + rect.width / 2;
-                    const cy = rect.top + rect.height / 2;
-                    const dx = (e.clientX - cx) / (rect.width / 2);
-                    const dy = (e.clientY - cy) / (rect.height / 2);
-                    if (Math.abs(dx) < 2 && Math.abs(dy) < 2) {
-                        chip.style.transform = `perspective(500px) rotateX(${-dy * 10}deg) rotateY(${dx * 10}deg) translateZ(4px)`;
-                    } else {
-                        chip.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
-                    }
-                });
-            });
-
-            document.addEventListener('visibilitychange', () => {
-                isPaused = document.hidden;
-            });
-
-            animate(0);
-        }
-
-        let lastTime = 0;
-
-        function animate(timestamp) {
-            if (!isPaused) {
-                const delta = (timestamp - lastTime) * 0.001;
-                lastTime = timestamp;
-                const time = timestamp * 0.001;
-
-                mouseCurrent.lerp(mouseTarget, 0.08);
-
-                if (orbMesh) {
-                    shaderMaterial.uniforms.uTime.value = time;
-                    orbMesh.rotation.y = time * 0.15 + mouseCurrent.x * 0.35;
-                    orbMesh.rotation.x = time * 0.1 + (-mouseCurrent.y) * 0.35;
-                    orbMesh.position.y = Math.sin(time * 0.8) * 0.8;
-                    orbMesh.position.x = Math.cos(time * 0.5) * 0.5;
-
-                    const targetPulse = isStreaming ? 2.2 + Math.sin(time * 8.0) * 0.5 : (isFocused ? 1.6 : 1.0);
-                    shaderMaterial.uniforms.uPulse.value += (targetPulse - shaderMaterial.uniforms.uPulse.value) * 0.05;
-
-                    innerWireMesh.rotation.z = -time * 0.3;
-                }
-
-                raycaster.setFromCamera(mouseCurrent, camera);
-                raycaster.ray.intersectPlane(plane, mouseWorldPos);
-
-                const positions = particles.geometry.attributes.position.array;
-
-                if (rippleActive) {
-                    rippleTime += 0.4;
-                    if (rippleTime > 120) {
-                        rippleActive = false;
-                        rippleTime = 0;
-                    }
-                }
-
-                for (let i = 0; i < count * 3; i += 3) {
-                    const px = positions[i];
-                    const py = positions[i+1];
-                    const pz = positions[i+2];
-
-                    const ox = originalPositions[i];
-                    const oy = originalPositions[i+1];
-                    const oz = originalPositions[i+2];
-
-                    const ambientNoise = Math.sin(time * 1.5 + ox) * 0.03;
-                    positions[i+1] += ambientNoise;
-
-                    const dx = px - mouseWorldPos.x;
-                    const dy = py - mouseWorldPos.y;
-                    const distSq = dx * dx + dy * dy;
-                    const radius = isFocused ? 26 : 18;
-
-                    if (distSq < radius * radius && distSq > 0) {
-                        const dist = Math.sqrt(distSq);
-                        const force = (radius - dist) / radius;
-                        const factor = isFocused ? -0.8 : 1.4;
-                        
-                        particleVelocities[i] += (dx / dist) * force * factor;
-                        particleVelocities[i+1] += (dy / dist) * force * factor;
-                    }
-
-                    if (rippleActive) {
-                        const distFromCenter = Math.sqrt(px * px + py * py);
-                        if (Math.abs(distFromCenter - rippleTime) < 4) {
-                            particleVelocities[i+2] += 1.5;
-                        }
-                    }
-
-                    particleVelocities[i] += (ox - px) * 0.03;
-                    particleVelocities[i+1] += (oy - py) * 0.03;
-                    particleVelocities[i+2] += (oz - pz) * 0.03;
-
-                    particleVelocities[i] *= 0.86;
-                    particleVelocities[i+1] *= 0.86;
-                    particleVelocities[i+2] *= 0.86;
-
-                    positions[i] += particleVelocities[i];
-                    positions[i+1] += particleVelocities[i+1];
-                    positions[i+2] += particleVelocities[i+2];
-                }
-
-                particles.geometry.attributes.position.needsUpdate = true;
-                renderer.render(scene, camera);
-            }
-
-            requestAnimationFrame(animate);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        init3D();
-    </script>
-
-    <!-- Chat & Interaction Logic -->
-    <script>
-        const chatMessages = document.getElementById('chat-messages');
-        const userInput = document.getElementById('user-input');
-        const statusPill = document.getElementById('status-pill');
-
-        let messageHistory = [];
-
-        function onInputFocus() {
-            isFocused = true;
-            document.body.classList.add('scene-focused');
-        }
-
-        function onInputBlur() {
-            isFocused = false;
-            document.body.classList.remove('scene-focused');
-        }
-
-        function triggerDelightRipple() {
-            rippleTime = 0;
-            rippleActive = true;
-        }
-
-        function usePrompt(text) {
-            userInput.value = text;
-            userInput.focus();
-        }
-
-        async function handleSend(e) {
-            e.preventDefault();
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            userInput.value = '';
-            appendUserMessage(text);
-            messageHistory.push({ role: "user", content: text });
-
-            triggerDelightRipple();
-
-            const assistantCard = createAssistantCardPlaceholder();
-            chatMessages.appendChild(assistantCard);
-            scrollToBottom();
-
-            isStreaming = true;
-            setStatus("Reasoning...", "bg-amber-500/15 border-amber-500/40 text-amber-400");
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: "nvidia/nemotron-3-ultra-550b-a55b:free",
-                        messages: messageHistory
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    const reply = data.choices[0].message.content;
-                    messageHistory.push({ role: "assistant", content: reply });
-                    updateAssistantCard(assistantCard, reply);
-                } else if (data.error) {
-                    updateAssistantCard(assistantCard, `⚠️ Error: ${data.error.message || 'API request failed'}`);
-                } else {
-                    updateAssistantCard(assistantCard, "⚠️ Unexpected response format from server.");
-                }
-            } catch (err) {
-                updateAssistantCard(assistantCard, `❌ Failed to connect to server: ${err.message}`);
-            }
-
-            isStreaming = false;
-            setStatus("Ready", "bg-emerald-500/15 border-emerald-500/40 text-emerald-400");
-        }
-
-        function appendUserMessage(text) {
-            const div = document.createElement('div');
-            div.className = 'flex items-start justify-end space-x-3 ml-auto max-w-2xl';
-            div.innerHTML = `
-                <div class="user-bubble p-5 rounded-3xl text-sm text-white leading-relaxed">
-                    ${escapeHtml(text)}
-                </div>
-            `;
-            chatMessages.appendChild(div);
-            scrollToBottom();
-        }
-
-        function createAssistantCardPlaceholder() {
-            const div = document.createElement('div');
-            div.className = 'flex items-start space-x-4 assistant-bubble p-6 rounded-3xl max-w-3xl animate-pulse';
-            div.innerHTML = `
-                <div class="w-9 h-9 rounded-2xl bg-[#76b900] flex items-center justify-center text-black font-extrabold text-base shrink-0 glow-nvidia">
-                    N
-                </div>
-                <div class="content space-y-2 text-sm text-slate-300 leading-relaxed">
-                    <p class="text-xs text-[#76b900] font-bold tracking-wider uppercase">Nemotron 3 Ultra is reasoning...</p>
-                </div>
-            `;
-            return div;
-        }
-
-        function updateAssistantCard(card, markdownContent) {
-            card.classList.remove('animate-pulse');
-            const contentDiv = card.querySelector('.content');
-            contentDiv.innerHTML = marked.parse(markdownContent);
-            scrollToBottom();
-        }
-
-        function setStatus(text, classes) {
-            statusPill.className = `flex items-center space-x-2 px-4 py-2 tactile-pill text-xs font-semibold ${classes}`;
-            statusPill.querySelector('span:last-child').textContent = text;
-        }
-
-        function clearChat() {
-            chatMessages.innerHTML = '';
-            messageHistory = [];
-        }
-
-        function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-    </script>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Input Area -->
+  <div id="input-area">
+    <form id="input-form" onsubmit="handleSend(event)">
+      <div id="input-wrap">
+        <textarea
+          id="user-input"
+          rows="1"
+          placeholder="Message Nemotron 3 Ultra…"
+          aria-label="Type your message"
+          autocomplete="off"
+          spellcheck="true"
+        ></textarea>
+      </div>
+      <button type="submit" id="send-btn" disabled aria-label="Send message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<!-- ── Three.js subtle background ────────────────────────────────────────── -->
+<script>
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas || !window.THREE) return;
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) return;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+  camera.position.z = 30;
+
+  const isMobile = innerWidth < 768;
+  const COUNT = isMobile ? 500 : 1000;
+
+  // Gaussian distribution for focal density
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(COUNT * 3);
+  const col = new Float32Array(COUNT * 3);
+  const cA = new THREE.Color('#76b900');
+  const cB = new THREE.Color('#2dd4bf');
+
+  for (let i = 0; i < COUNT; i++) {
+    const u = Math.random(), v = Math.random();
+    const r = Math.sqrt(-2 * Math.log(u)) * 28;
+    const t = 2 * Math.PI * v;
+    pos[i*3]   = r * Math.cos(t);
+    pos[i*3+1] = r * Math.sin(t);
+    pos[i*3+2] = (Math.random() - .5) * 40;
+    const c = Math.random() < .8 ? cA : cB;
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  }
+
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+
+  const mat = new THREE.PointsMaterial({
+    size: 0.38, vertexColors: true,
+    transparent: true, opacity: .9,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+
+  // Subtle icosahedron core
+  const core = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(6, 3),
+    new THREE.MeshBasicMaterial({ color: 0x76b900, wireframe: true, transparent: true, opacity: 0.18 })
+  );
+  scene.add(core);
+
+  let raf;
+  const resize = () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  };
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Pause when tab hidden
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) cancelAnimationFrame(raf);
+    else tick(0);
+  });
+
+  const tick = (t) => {
+    raf = requestAnimationFrame(tick);
+    const s = t * 0.001;
+    points.rotation.y = s * 0.06;
+    core.rotation.y   = s * 0.12;
+    core.rotation.x   = s * 0.07;
+    renderer.render(scene, camera);
+  };
+  tick(0);
+})();
+</script>
+
+<!-- ── App Logic ────────────────────────────────────────────────────────── -->
+<script>
+/* ── Theme ── */
+const html = document.documentElement;
+const sunIcon  = document.getElementById('icon-sun');
+const moonIcon = document.getElementById('icon-moon');
+
+function applyTheme(theme) {
+  html.dataset.theme = theme;
+  localStorage.setItem('nemo-theme', theme);
+  if (theme === 'dark') {
+    sunIcon.style.display = 'block';
+    moonIcon.style.display = 'none';
+  } else {
+    sunIcon.style.display = 'none';
+    moonIcon.style.display = 'block';
+  }
+}
+
+function toggleTheme() {
+  applyTheme(html.dataset.theme === 'dark' ? 'light' : 'dark');
+}
+
+// Init theme from localStorage or system preference
+const savedTheme = localStorage.getItem('nemo-theme');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+/* ── Chat History Persistence ── */
+const STORAGE_KEY = 'nemo-history';
+let messageHistory = [];
+
+function saveHistory() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messageHistory)); } catch(e) {}
+}
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
+}
+
+/* ── DOM refs ── */
+const messagesEl  = document.getElementById('messages');
+const scrollEl    = document.getElementById('chat-scroll');
+const inputEl     = document.getElementById('user-input');
+const sendBtn     = document.getElementById('send-btn');
+const statusBadge = document.getElementById('status-badge');
+const welcomeCard = document.getElementById('welcome-card');
+
+/* ── Auto-resize textarea ── */
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  sendBtn.disabled = !inputEl.value.trim();
+});
+
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (!sendBtn.disabled) handleSend(e);
+  }
+});
+
+/* ── Restore history ── */
+(function restoreHistory() {
+  messageHistory = loadHistory();
+  if (!messageHistory.length) return;
+  welcomeCard.style.display = 'none';
+  messageHistory.forEach(m => {
+    if (m.role === 'user')      appendUserMsg(m.content, false);
+    else if (m.role === 'assistant') appendAssistantMsg(m.content, false);
+  });
+  scrollToBottom();
+})();
+
+/* ── usePrompt ── */
+function usePrompt(text) {
+  inputEl.value = text;
+  inputEl.dispatchEvent(new Event('input'));
+  inputEl.focus();
+}
+
+/* ── Send ── */
+async function handleSend(e) {
+  if (e.preventDefault) e.preventDefault();
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  // Hide welcome card on first message
+  welcomeCard.style.display = 'none';
+
+  // Reset input
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  appendUserMsg(text);
+  messageHistory.push({ role: 'user', content: text });
+  saveHistory();
+
+  // Loading skeleton
+  const loadingRow = createSkeletonRow();
+  messagesEl.appendChild(loadingRow);
+  scrollToBottom();
+
+  setStatus('Reasoning…', true);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+        messages: messageHistory
+      })
+    });
+
+    const data = await res.json();
+    loadingRow.remove();
+
+    if (data.choices?.[0]?.message?.content) {
+      const reply = data.choices[0].message.content;
+      messageHistory.push({ role: 'assistant', content: reply });
+      saveHistory();
+      appendAssistantMsg(reply);
+    } else if (data.error) {
+      showToast(data.error.message || 'API error. Please try again.', 'error');
+    } else {
+      showToast('Unexpected response from server.', 'error');
+    }
+  } catch (err) {
+    loadingRow.remove();
+    showToast(`Connection failed: ${err.message}`, 'error');
+  }
+
+  setStatus('Ready', false);
+}
+
+/* ── Append messages ── */
+function appendUserMsg(text, animate = true) {
+  const row = document.createElement('div');
+  row.className = 'msg-row user' + (animate ? '' : ' no-anim');
+  row.innerHTML = `
+    <div class="msg-avatar u-avatar" aria-hidden="true">You</div>
+    <div class="msg-bubble" role="article" aria-label="Your message">${escapeHtml(text)}</div>
+  `;
+  messagesEl.appendChild(row);
+  if (animate) scrollToBottom();
+}
+
+function appendAssistantMsg(text, animate = true) {
+  const row = document.createElement('div');
+  row.className = 'msg-row assistant' + (animate ? '' : ' no-anim');
+  const safeHtml = marked.parse(text);
+  row.innerHTML = `
+    <div class="msg-avatar n-avatar" aria-hidden="true">N</div>
+    <div class="msg-bubble" role="article" aria-label="Nemotron response">${safeHtml}</div>
+  `;
+  messagesEl.appendChild(row);
+  if (animate) scrollToBottom();
+}
+
+function createSkeletonRow() {
+  const row = document.createElement('div');
+  row.className = 'msg-row assistant';
+  row.setAttribute('aria-label', 'Loading response');
+  row.setAttribute('aria-busy', 'true');
+  row.innerHTML = `
+    <div class="msg-avatar n-avatar" aria-hidden="true">N</div>
+    <div class="skeleton-bubble" role="status" aria-label="Nemotron is thinking">
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+    </div>
+  `;
+  return row;
+}
+
+/* ── Clear ── */
+function clearChat() {
+  messageHistory = [];
+  saveHistory();
+  messagesEl.innerHTML = '';
+  messagesEl.appendChild(welcomeCard);
+  welcomeCard.style.display = '';
+  setStatus('Ready', false);
+}
+
+/* ── Status ── */
+function setStatus(text, loading) {
+  statusBadge.textContent = text;
+  statusBadge.classList.toggle('loading', !!loading);
+}
+
+/* ── Toast ── */
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.setAttribute('role', 'alert');
+  toast.innerHTML = `
+    <span class="toast-icon">${type === 'error' ? '⚠️' : 'ℹ️'}</span>
+    <span class="toast-msg">${escapeHtml(msg)}</span>
+    <button class="toast-close" aria-label="Dismiss notification" onclick="this.closest('.toast').remove()">✕</button>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 6000);
+}
+
+/* ── Helpers ── */
+function scrollToBottom() {
+  requestAnimationFrame(() => {
+    scrollEl.scrollTop = scrollEl.scrollHeight;
+  });
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
 </body>
 </html>
