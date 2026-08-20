@@ -18,8 +18,8 @@
     <style>
         :root {
             --nvidia-green: #76b900;
-            --nvidia-teal: #0f766e;
-            --bg-dark: #020617;
+            --nvidia-teal: #0d9488;
+            --bg-light: #f8fafc;
         }
 
         * {
@@ -38,8 +38,8 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: var(--bg-dark);
-            color: #f8fafc;
+            background: radial-gradient(circle at 50% 20%, #ffffff 0%, #f1f5f9 60%, #e2e8f0 100%);
+            color: #0f172a;
         }
 
         #canvas-container {
@@ -52,28 +52,27 @@
             pointer-events: none;
         }
 
-        /* 1. Spatial Glass Depth & Lighting Model */
+        /* Premium Light Glassmorphism */
         .spatial-glass {
             background: linear-gradient(
                 135deg,
-                rgba(15, 23, 42, 0.65) 0%,
-                rgba(2, 6, 23, 0.75) 100%
+                rgba(255, 255, 255, 0.75) 0%,
+                rgba(241, 245, 249, 0.85) 100%
             );
-            backdrop-filter: blur(32px) saturate(200%);
-            -webkit-backdrop-filter: blur(32px) saturate(200%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-top: 1px solid rgba(255, 255, 255, 0.22); /* Directional top-left light highlight */
-            border-left: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(32px) saturate(190%);
+            -webkit-backdrop-filter: blur(32px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 1);
+            border-left: 1px solid rgba(255, 255, 255, 0.95);
             box-shadow: 
-                0 30px 60px -12px rgba(0, 0, 0, 0.7),
-                0 18px 36px -18px rgba(2, 6, 23, 0.9),
-                inset 0 1px 1px rgba(255, 255, 255, 0.15),
-                inset 0 -1px 20px rgba(0, 0, 0, 0.5);
+                0 30px 60px -12px rgba(148, 163, 184, 0.35),
+                0 18px 36px -18px rgba(100, 116, 139, 0.25),
+                inset 0 1px 2px rgba(255, 255, 255, 0.9);
             position: relative;
             overflow: hidden;
         }
 
-        /* Ambient Shimmer Light-Sweep Overlay */
+        /* Light Shimmer Pass */
         .spatial-glass::before {
             content: '';
             position: absolute;
@@ -84,11 +83,11 @@
             background: linear-gradient(
                 90deg,
                 transparent 0%,
-                rgba(255, 255, 255, 0.04) 50%,
+                rgba(255, 255, 255, 0.4) 50%,
                 transparent 100%
             );
             transform: skewX(-25deg);
-            animation: lightSweep 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            animation: lightSweep 10s infinite cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
         }
 
@@ -99,59 +98,64 @@
 
         /* Focus & Interaction State Lighting Shift */
         .scene-focused .spatial-glass {
-            border-color: rgba(118, 185, 0, 0.4);
+            border-color: rgba(118, 185, 0, 0.6);
             box-shadow: 
-                0 30px 70px -10px rgba(118, 185, 0, 0.15),
-                0 0 40px rgba(118, 185, 0, 0.2),
-                inset 0 1px 2px rgba(255, 255, 255, 0.25);
+                0 30px 70px -10px rgba(118, 185, 0, 0.25),
+                0 0 35px rgba(118, 185, 0, 0.3),
+                inset 0 1px 2px rgba(255, 255, 255, 1);
         }
 
         .glass-input-wrapper {
-            background: rgba(15, 23, 42, 0.65);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(203, 213, 225, 0.8);
+            box-shadow: inset 0 2px 4px rgba(148, 163, 184, 0.15);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .glass-input-wrapper:focus-within {
             border-color: #76b900;
-            background: rgba(15, 23, 42, 0.85);
-            box-shadow: 0 0 30px rgba(118, 185, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(118, 185, 0, 0.3), inset 0 2px 4px rgba(148, 163, 184, 0.1);
             transform: translateY(-2px);
         }
 
-        /* 3D Magnetic Interactive Chips */
+        /* Interactive Light Chips */
         .chip-interactive {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(203, 213, 225, 0.7);
+            box-shadow: 0 4px 12px rgba(148, 163, 184, 0.15);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             transform-style: preserve-3d;
             will-change: transform;
+            color: #334155;
         }
 
         .chip-interactive:hover {
-            background: rgba(118, 185, 0, 0.18);
-            border-color: rgba(118, 185, 0, 0.5);
-            color: #ffffff;
-            box-shadow: 0 10px 25px -5px rgba(118, 185, 0, 0.3);
+            background: rgba(118, 185, 0, 0.15);
+            border-color: rgba(118, 185, 0, 0.6);
+            color: #0f172a;
+            box-shadow: 0 8px 20px -4px rgba(118, 185, 0, 0.3);
         }
 
-        /* Bubbles */
+        /* Light Mode Chat Bubbles */
         .user-bubble {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(15, 23, 42, 0.45));
-            border: 1px solid rgba(96, 165, 250, 0.35);
-            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: 1px solid rgba(147, 197, 253, 0.5);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+            color: #ffffff;
         }
 
         .assistant-bubble {
-            background: linear-gradient(135deg, rgba(118, 185, 0, 0.18), rgba(15, 23, 42, 0.5));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.95));
             border: 1px solid rgba(118, 185, 0, 0.4);
-            box-shadow: 0 10px 30px rgba(118, 185, 0, 0.18);
+            box-shadow: 0 10px 30px rgba(148, 163, 184, 0.2);
+            color: #0f172a;
         }
 
         .glow-nvidia {
-            filter: drop-shadow(0 0 18px rgba(118, 185, 0, 0.65));
+            filter: drop-shadow(0 0 15px rgba(118, 185, 0, 0.5));
         }
 
         /* Easing & Smooth Transitions */
@@ -160,8 +164,9 @@
         }
 
         pre {
-            background: rgba(2, 6, 23, 0.9) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #0f172a !important;
+            color: #f8fafc !important;
+            border: 1px solid rgba(203, 213, 225, 0.2);
             border-radius: 0.85rem;
             padding: 1rem;
             margin: 0.75rem 0;
@@ -169,7 +174,7 @@
         }
 
         code {
-            color: #a7f3d0;
+            color: #34d399;
         }
     </style>
 </head>
@@ -182,31 +187,31 @@
     <main class="relative z-10 w-full max-w-6xl h-[92vh] spatial-glass rounded-3xl flex flex-col justify-between">
         
         <!-- Header -->
-        <header class="px-6 md:px-8 py-4 flex items-center justify-between border-b border-white/10 bg-slate-950/30 backdrop-blur-md">
+        <header class="px-6 md:px-8 py-4 flex items-center justify-between border-b border-slate-200/80 bg-white/40 backdrop-blur-md">
             <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#76b900] via-emerald-400 to-teal-400 flex items-center justify-center shadow-lg shadow-[#76b900]/40 glow-nvidia">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#76b900] via-emerald-400 to-teal-400 flex items-center justify-center shadow-lg shadow-[#76b900]/30 glow-nvidia">
                     <svg class="w-7 h-7 text-black" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="font-syne text-xl md:text-2xl font-extrabold text-white tracking-wide flex items-center gap-3">
+                    <h1 class="font-syne text-xl md:text-2xl font-extrabold text-slate-900 tracking-wide flex items-center gap-3">
                         NVIDIA Nemotron 3 Ultra
-                        <span class="text-xs font-sans px-3 py-1 rounded-full bg-[#76b900]/25 text-[#76b900] border border-[#76b900]/50 font-bold">550B MoE</span>
+                        <span class="text-xs font-sans px-3 py-1 rounded-full bg-[#76b900]/20 text-[#4d7c0f] border border-[#76b900]/40 font-bold">550B MoE</span>
                     </h1>
-                    <p class="text-xs text-slate-400 font-medium flex items-center gap-2 mt-0.5">
-                        <span id="ambient-indicator" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Spatial GLSL Canvas • Hybrid LatentMoE Engine
+                    <p class="text-xs text-slate-500 font-medium flex items-center gap-2 mt-0.5">
+                        <span id="ambient-indicator" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Spatial Light Engine • Hybrid LatentMoE
                     </p>
                 </div>
             </div>
 
             <!-- Header Controls -->
             <div class="flex items-center space-x-3">
-                <div id="status-pill" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-semibold">
+                <div id="status-pill" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 text-xs font-semibold">
                     <span>Ready</span>
                 </div>
-                <button onclick="clearChat()" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition border border-white/15 text-xs font-semibold flex items-center gap-2">
+                <button onclick="clearChat()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition border border-slate-200 text-xs font-semibold flex items-center gap-2 shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
@@ -222,22 +227,22 @@
                 <div class="w-9 h-9 rounded-2xl bg-[#76b900] flex items-center justify-center text-black font-extrabold text-base shrink-0 glow-nvidia">
                     N
                 </div>
-                <div class="space-y-3 text-sm text-slate-200 leading-relaxed">
-                    <h2 class="font-syne font-bold text-[#76b900] text-lg">Nemotron 3 Ultra Spatial OS</h2>
+                <div class="space-y-3 text-sm text-slate-800 leading-relaxed">
+                    <h2 class="font-syne font-bold text-[#4d7c0f] text-lg">Nemotron 3 Ultra Light OS</h2>
                     <p>Welcome. I am NVIDIA's frontier 550B hybrid Mixture-of-Experts reasoning model. How can I assist your workflow today?</p>
 
                     <!-- Starter Chips -->
                     <div class="pt-2 flex flex-wrap gap-2">
-                        <button onclick="usePrompt('Explain quantum computing algorithms in simple terms.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs text-slate-300 font-medium">⚛️ Quantum Computing</button>
-                        <button onclick="usePrompt('Write a Python script for real-time video streaming with OpenCV.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs text-slate-300 font-medium">🐍 OpenCV Streaming</button>
-                        <button onclick="usePrompt('Explain Mixture-of-Experts (MoE) vs Dense Transformer architectures.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs text-slate-300 font-medium">🧠 MoE vs Dense</button>
+                        <button onclick="usePrompt('Explain quantum computing algorithms in simple terms.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs font-medium">⚛️ Quantum Computing</button>
+                        <button onclick="usePrompt('Write a Python script for real-time video streaming with OpenCV.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs font-medium">🐍 OpenCV Streaming</button>
+                        <button onclick="usePrompt('Explain Mixture-of-Experts (MoE) vs Dense Transformer architectures.')" class="chip-interactive px-3.5 py-1.5 rounded-xl text-xs font-medium">🧠 MoE vs Dense</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Floating Glass Input Bar -->
-        <div class="p-6 bg-slate-950/40 backdrop-blur-2xl border-t border-white/10">
+        <div class="p-6 bg-white/40 backdrop-blur-2xl border-t border-slate-200/80">
             <form id="chat-form" onsubmit="handleSend(event)" class="relative flex items-center max-w-5xl mx-auto">
                 <div class="w-full rounded-2xl glass-input-wrapper flex items-center px-4 py-2">
                     <input 
@@ -247,7 +252,7 @@
                         autocomplete="off"
                         onfocus="onInputFocus()"
                         onblur="onInputBlur()"
-                        class="w-full h-12 bg-transparent text-white placeholder-slate-400 text-sm focus:outline-none pr-32"
+                        class="w-full h-12 bg-transparent text-slate-900 placeholder-slate-400 text-sm focus:outline-none pr-32"
                     />
                     <button 
                         type="submit" 
@@ -394,7 +399,7 @@
                 uniforms: {
                     uTime: { value: 0 },
                     uDistortion: { value: 0.6 },
-                    uColorA: { value: new THREE.Color(0x0f766e) }, // Deep Teal
+                    uColorA: { value: new THREE.Color(0x0d9488) }, // Emerald Teal
                     uColorB: { value: new THREE.Color(0x76b900) }, // NVIDIA Green
                     uPulse: { value: 1.0 }
                 },
@@ -409,7 +414,7 @@
 
             // Inner Accent Geometry
             const innerGeo = new THREE.IcosahedronGeometry(4, 2);
-            const innerMat = new THREE.MeshBasicMaterial({ color: 0x76b900, wireframe: true, transparent: true, opacity: 0.4 });
+            const innerMat = new THREE.MeshBasicMaterial({ color: 0x76b900, wireframe: true, transparent: true, opacity: 0.5 });
             innerWireMesh = new THREE.Mesh(innerGeo, innerMat);
             orbMesh.add(innerWireMesh);
 
@@ -440,11 +445,11 @@
             particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
             
             const particleMat = new THREE.PointsMaterial({
-                size: 0.4,
-                color: 0x76b900,
+                size: 0.45,
+                color: 0x059669,
                 transparent: true,
-                opacity: 0.75,
-                blending: THREE.AdditiveBlending
+                opacity: 0.65,
+                blending: THREE.NormalBlending
             });
             particles = new THREE.Points(particleGeo, particleMat);
             scene.add(particles);
@@ -637,7 +642,7 @@
             scrollToBottom();
 
             isStreaming = true;
-            setStatus("Reasoning...", "bg-amber-500/15 border-amber-500/40 text-amber-400");
+            setStatus("Reasoning...", "bg-amber-500/10 border-amber-500/30 text-amber-700");
 
             try {
                 const response = await fetch('/api/chat', {
@@ -665,7 +670,7 @@
             }
 
             isStreaming = false;
-            setStatus("Ready", "bg-emerald-500/15 border-emerald-500/40 text-emerald-400");
+            setStatus("Ready", "bg-emerald-500/10 border-emerald-500/30 text-emerald-700");
         }
 
         function appendUserMessage(text) {
